@@ -1,7 +1,5 @@
-export default function Loading() {
-  return (
-    <div style={{ padding: 20 }}>
-      <p>Loading...</p>
-    </div>
-  );
-}
+const Loading = () => {
+  return <p>Loading, please wait...</p>;
+};
+
+export default Loading;

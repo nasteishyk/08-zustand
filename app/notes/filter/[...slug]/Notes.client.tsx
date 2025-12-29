@@ -1,84 +1,77 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { useDebounce } from 'use-debounce';
-import { fetchNotes } from '@/lib/api';
+// import Modal from '@/components/Modal/Modal';
+// import NoteForm from '@/components/NoteForm/NoteForm';
 import NoteList from '@/components/NoteList/NoteList';
 import Pagination from '@/components/Pagination/Pagination';
 import SearchBox from '@/components/SearchBox/SearchBox';
-
-import css from './Notes.client.module.css';
+import { fetchNotes } from '@/lib/api';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
+import css from '@/app/notes/filter/[...slug]/notesPage.module.css';
 import Link from 'next/link';
 
-interface NotesByTagNameClientProps {
-  tagName: string | undefined;
+interface NotesByCategoryClientProps {
+  category: string | undefined;
 }
 
-export const NotesByTagNameClient = ({
-  tagName,
-}: NotesByTagNameClientProps) => {
-  const [search, setSearch] = useState('');
+const NotesByCategoryClient = ({ category }: NotesByCategoryClientProps) => {
+  const [title, setTitle] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  // const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [isOpenModal, setIsOpenModal] = useState(false);
 
-  // const openModal = useCallback(() => setIsModalOpen(true), []);
-  // const closeModal = useCallback(() => setIsModalOpen(false), []);
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    setTitle(value);
+    setCurrentPage(1);
+  }, 1000);
 
-  const [debouncedSearch] = useDebounce(search, 400);
-
-  const { data, isError, isLoading, isFetching } = useQuery({
-    queryKey: ['notes', tagName, debouncedSearch, currentPage],
-    queryFn: () => fetchNotes(currentPage, debouncedSearch, tagName),
+  const { data, isError, isLoading, error } = useQuery({
+    queryKey: ['notes', category, title, currentPage],
+    queryFn: () => fetchNotes(currentPage, title, category),
     refetchOnMount: false,
+    enabled: true,
     placeholderData: keepPreviousData,
   });
-
-  const handleSearchChange = (val: string) => {
-    setSearch(val);
-    setCurrentPage(1);
-  };
 
   const totalPages = data?.totalPages ?? 0;
 
   return (
-    <div className={css.app}>
-      <header className={css.toolbar}>
-        <SearchBox value={search} onChange={handleSearchChange} />
-
-        {totalPages > 1 && (
-          <Pagination
-            currentPage={currentPage}
-            pageCount={totalPages}
-            onPageChange={setCurrentPage}
+    <>
+      <div className={css.app}>
+        <header className={css.toolbar}>
+          <SearchBox
+            onSearch={debouncedSearch}
+            value={title}
           />
-        )}
-        {
-          <Link href="/notes/action/create" className={css.button}>
-            Create note +{' '}
+
+          {totalPages > 1 && (
+            <Pagination
+              totalPages={totalPages}
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+            />
+          )}
+
+          <Link
+            className={css.button}
+            href="/notes/action/create">
+            Create note +
           </Link>
-        }
-        {/* <button className={css.button} onClick={openModal}>
-          Create note +
-        </button> */}
-      </header>
-      {isLoading && <p>Loading...</p>}
-      {isError && <p>Something went wrong. Try again.</p>}
-      {!isLoading && !isError && data && data.notes.length > 0 && (
-        <NoteList notes={data.notes} />
-      )}
+        </header>
 
-      {/* {isModalOpen && (
-        <Modal onClose={closeModal}>
-          <NoteForm
-            onCreated={() => {
-              closeModal();
-            }}
-            onCancel={closeModal}
-          />
-        </Modal>
-      )} */}
-      {isFetching && <p>Updating...</p>}
-    </div>
+        {/* {isError && <CustomErrorMessage />} */}
+
+        {/* {isOpenModal && (
+          <Modal closeModal={() => setIsOpenModal(false)}>
+            <NoteForm closeModal={() => setIsOpenModal(false)} />
+          </Modal>
+        )} */}
+
+        {data && data.notes.length > 0 && <NoteList notes={data.notes} />}
+      </div>
+    </>
   );
 };
+
+export default NotesByCategoryClient;

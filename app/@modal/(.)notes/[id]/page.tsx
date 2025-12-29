@@ -1,4 +1,4 @@
-import { fetchNoteById } from '@/lib/api';
+import { getSingleNote } from '@/lib/api';
 
 import {
   dehydrate,
@@ -17,7 +17,7 @@ const NoteDetailsPreview = async ({ params }: Props) => {
   const queryClient = new QueryClient();
   await queryClient.prefetchQuery({
     queryKey: ['note', id],
-    queryFn: () => fetchNoteById(id),
+    queryFn: () => getSingleNote(id),
   });
 
   return (

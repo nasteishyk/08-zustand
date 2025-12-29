@@ -1,76 +1,97 @@
-'use client';
-import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
-import type { Note } from '@/types/note';
+import axios from 'axios';
 
-const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN as string;
-const BASE_URL = 'https://notehub-public.goit.study/api';
+import type { Note, NewNote } from '../types/note';
 
-const api: AxiosInstance = axios.create({
-  baseURL: BASE_URL,
-  headers: {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  },
-});
-
-export interface FetchNotesParams {
-  page?: number;
-  perPage?: number;
-  tagName?: string;
-}
-
-export interface FetchNotesResponse {
+interface HTTPGetResponse {
   notes: Note[];
   totalPages: number;
 }
 
-export interface CreateNotePayload {
-  title: string;
-  content: string;
-  tag: string;
-}
+// interface HTTPPostDeleteResponse {
+//   data: Note;
+// }
 
-export async function fetchNotes(
+export const fetchNotes = async (
   currentPage: number,
-  search?: string,
-  tagName?: string
-): Promise<FetchNotesResponse> {
+  search: string,
+  category?: string
+): Promise<HTTPGetResponse> => {
   const getParams = {
     params: {
       search,
       page: currentPage,
       perPage: 12,
-      tag: tagName,
+      tag: category,
+    },
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
     },
   };
 
-  const { data } = await api.get<FetchNotesResponse>('/notes', getParams);
+  const data = await axios.get<HTTPGetResponse>(
+    'https://notehub-public.goit.study/api/notes',
+    getParams
+  );
+
+  return data.data;
+};
+
+export const createNote = async (note: NewNote): Promise<Note> => {
+  const postParams = {
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
+    },
+  };
+
+  const { data } = await axios.post<Note>(
+    'https://notehub-public.goit.study/api/notes',
+    note,
+    postParams
+  );
 
   return data;
-}
-// export async function getTodos() {
-//   const { data } = await axios.get<Todo[]>(
-//     'https://jsonplaceholder.typicode.com/todos'
-//   );
-//   return data;
-// }
-export async function fetchNoteById(id: string): Promise<Note> {
-  const { data } = await api.get<Note>(`/notes/${id}`);
+};
+
+export const deleteNote = async (id: string): Promise<Note> => {
+  const deleteParams = {
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
+    },
+  };
+
+  const { data } = await axios.delete<Note>(
+    `https://notehub-public.goit.study/api/notes/${id}`,
+    deleteParams
+  );
   return data;
-}
-// export async function getTodo(todoId: Todo['id']) {
-//   const { data } = await axios.get<Todo>(
-//     `https://jsonplaceholder.typicode.com/todos/${todoId}`
+};
+
+export const getSingleNote = async (id: string) => {
+  const getSingleParams = {
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
+    },
+  };
+
+  const { data } = await axios.get<Note>(
+    `https://notehub-public.goit.study/api/notes/${id}`,
+    getSingleParams
+  );
+
+  return data;
+};
+
+// export const getCategories = async () => {
+//   const getCategoriesParams = {
+//     headers: {
+//       Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
+//     },
+//   };
+
+//   const { data } = await axios.get<Category[]>(
+//     `https://notehub-public.goit.study/api/categories`,
+//     getCategoriesParams
 //   );
+//   console.log(data);
 //   return data;
-// }
-
-export async function createNote(payload: CreateNotePayload): Promise<Note> {
-  const response: AxiosResponse<Note> = await api.post('/notes', payload);
-  return response.data;
-}
-
-export async function deleteNote(id: string): Promise<Note> {
-  const response: AxiosResponse<Note> = await api.delete(`/notes/${id}`);
-  return response.data;
-}
+// };

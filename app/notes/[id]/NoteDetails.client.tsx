@@ -1,28 +1,29 @@
 'use client';
-
+import css from '@/app/notes/[id]/NoteDetails.module.css';
+import { getSingleNote } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
-import { fetchNoteById } from '@/lib/api';
 import { useParams } from 'next/navigation';
-import css from './NoteDetails.module.css';
-import { Note } from '@/types/note';
 
-export default function NoteDetailsClient() {
-  const params = useParams();
-  const id = params.id as string;
+const NoteDetailsClient = () => {
+  const { id } = useParams<{ id: string }>();
 
   const {
     data: note,
     isLoading,
+    isError,
     error,
-  } = useQuery<Note>({
+  } = useQuery({
     queryKey: ['note', id],
-    queryFn: () => fetchNoteById(id),
+    queryFn: () => getSingleNote(id),
     refetchOnMount: false,
   });
 
   if (isLoading) return <p>Loading, please wait...</p>;
   if (error || !note) return <p>Something went wrong.</p>;
 
+  const formattedDate = note.updatedAt
+    ? `Updated at: ${note.updatedAt}`
+    : `Created at: ${note.createdAt}`;
   return (
     <div className={css.container}>
       <div className={css.item}>
@@ -30,10 +31,10 @@ export default function NoteDetailsClient() {
           <h2>{note.title}</h2>
         </div>
         <p className={css.content}>{note.content}</p>
-        <p className={css.date}>Created: {note.createdAt}</p>
-        <p className={css.date}>Updated: {note.updatedAt}</p>
-        <p className={css.tag}>Tag: {note.tag}</p>
+        <p className={css.date}>{formattedDate}</p>
       </div>
     </div>
   );
-}
+};
+
+export default NoteDetailsClient;

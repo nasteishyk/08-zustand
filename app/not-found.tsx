@@ -1,24 +1,28 @@
-import css from './not-found.module.css';
+import css from '@/app/home.module.css';
 import { Metadata } from 'next';
+
 export const metadata: Metadata = {
-  title: 'Сторінку не знайдено — 404',
+  title: 'Notehub',
   description:
-    'Ця сторінка не існує. Можливо, ви перейшли за неправильним посиланням або сторінку було видалено.',
+    'App for writing your personal notes and reminders.  This page not found!',
   openGraph: {
-    title: 'Сторінку не знайдено — 404',
+    title: 'Notehub',
     description:
-      'Ця сторінка не існує. Можливо, ви перейшли за неправильним посиланням або сторінку було видалено.',
-    url: '/not-found',
+      'App for writing your personal notes and reminders. This page not found!',
+    url: 'https://08-zustand-ten-ebon.vercel.app/',
+    siteName: 'NoteHub',
     images: [
       {
         url: 'https://ac.goit.global/fullstack/react/notehub-og-meta.jpg',
         width: 1200,
         height: 630,
-        alt: 'NoteHub 404 Open Graph Image',
+        alt: 'NoteHub',
       },
     ],
+    type: 'website',
   },
 };
+
 const NotFound = () => {
   return (
     <div>

@@ -1,54 +1,59 @@
-import { QueryClient, dehydrate } from '@tanstack/react-query';
-import { HydrationBoundary } from '@tanstack/react-query';
 import { fetchNotes } from '@/lib/api';
-import { NotesByTagNameClient } from './Notes.client';
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from '@tanstack/react-query';
+import NotesByCategoryClient from './Notes.client';
 import { Metadata } from 'next';
+
 type Props = {
   params: Promise<{ slug: string[] }>;
 };
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const path = slug.join('/');
-  const tagName = slug[slug.length - 1];
-
+  const category = slug[0] === 'all' ? undefined : slug[0];
   return {
-    title: `Notes: ${tagName}`,
-    description: `Page with selected filters: ${path}`,
+    title: `${category} category`,
+    description: `All your notes filtered by ${category} category`,
     openGraph: {
-      title: `Notes: ${tagName}`,
-      description: `Page with selected filters: ${path}`,
-      url: `https://notehub.com/notes/filter/${path}`,
+      title: `Notes with ${category} category`,
+      description: `App for writing your personal notes and reminders. Your "${category}" notes`,
+      url: `https://08-zustand-ten-ebon.vercel.app/notes/filter/${category}`,
       siteName: 'NoteHub',
       images: [
         {
-          url: 'https://ac.goit.global/fullstack/react/og-meta.jpg',
+          url: 'https://ac.goit.global/fullstack/react/notehub-og-meta.jpg',
           width: 1200,
           height: 630,
-          alt: `Notes: ${tagName}`,
+          alt: 'NoteHub',
         },
       ],
-      type: 'article',
+      type: 'website',
     },
   };
 }
-export default async function Page({ params }: Props) {
+
+const NotesByCategory = async ({ params }: Props) => {
   const initialPage = 1;
   const initialSearch = '';
-
   const { slug } = await params;
-  const tagName = slug[0] === 'all' ? undefined : slug[0];
+  const category = slug[0] === 'all' ? undefined : slug[0];
+  //   const response = await fetchNotes(initialPage, initialSearch, category);
+  //   console.log(category);
 
   const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({
-    queryKey: ['notes', tagName, initialSearch, initialPage],
-    queryFn: () => fetchNotes(initialPage, initialSearch, tagName),
+    queryKey: ['notes', category, initialSearch, initialPage],
+    queryFn: () => fetchNotes(initialPage, initialSearch, category),
   });
-
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <NotesByTagNameClient tagName={tagName} />
+      <NotesByCategoryClient category={category} />
     </HydrationBoundary>
   );
-}
-// registr не виправляє ***** цей Гіт
+};
+
+export default NotesByCategory;
